@@ -1,6 +1,7 @@
 const STORAGE_KEY = "fertility-food-app-v1";
 const TODAY = new Date();
 const dateKey = getLocalDateKey(TODAY);
+const sessionStartedAt = Date.now();
 
 const STAGES = [
   { id: "preconception_3m", label: "备孕前三个月" },
@@ -251,8 +252,8 @@ const FOOD_DATA = {
 };
 
 const SHOPPING_GROUPS = [
-  { name: "蛋白质", foods: ["鸡蛋", "牛奶", "无糖酸奶", "豆腐", "鸡胸肉", "瘦牛肉", "虾", "鳕鱼", "三文鱼"] },
-  { name: "绿叶菜和蔬菜", foods: ["菠菜", "小白菜", "西兰花", "芦笋", "番茄", "冬瓜", "红薯"] },
+  { name: "蛋白质", foods: ["鸡蛋", "牛奶", "无糖酸奶", "酸奶", "豆腐", "鸡胸肉", "瘦牛肉", "虾", "鳕鱼", "三文鱼"] },
+  { name: "绿叶菜和蔬菜", foods: ["菠菜", "小白菜", "西兰花", "芦笋", "番茄", "冬瓜", "红薯", "黄瓜"] },
   { name: "水果", foods: ["橙子", "奇异果", "苹果", "蓝莓", "草莓", "葡萄柚", "西瓜"] },
   { name: "坚果豆类和主食", foods: ["核桃", "杏仁", "黑豆", "黄豆", "燕麦", "糙米", "全麦面包"] },
   { name: "海鲜贝类", foods: ["生蚝", "牡蛎", "扇贝"] },
@@ -260,16 +261,87 @@ const SHOPPING_GROUPS = [
 
 const AVOID_OPTIONS = ["动物肝脏", "海鲜贝类", "牛奶乳制品", "坚果", "牛肉", "豆类"];
 
+const FOOD_ICONS = {
+  菠菜: "🥬",
+  小白菜: "🥬",
+  空心菜: "🥬",
+  青菜: "🥬",
+  西兰花: "🥦",
+  芦笋: "🌿",
+  番茄: "🍅",
+  红萝卜: "🥕",
+  南瓜: "🎃",
+  冬瓜: "🥒",
+  黄瓜: "🥒",
+  红薯: "🍠",
+  土豆: "🥔",
+  黄豆: "🫘",
+  黑豆: "🫘",
+  豆腐: "◻️",
+  芝麻: "🌰",
+  芝麻酱: "🌰",
+  核桃: "🌰",
+  杏仁: "🌰",
+  花生: "🥜",
+  桑葚: "🫐",
+  鸡蛋: "🥚",
+  鸡蛋羹: "🥚",
+  牛奶: "🥛",
+  酸奶: "🥛",
+  无糖酸奶: "🥛",
+  奶酪: "🧀",
+  鱼: "🐟",
+  鱼肉: "🐟",
+  三文鱼: "🍣",
+  鳕鱼: "🐟",
+  虾: "🍤",
+  鲜虾: "🍤",
+  生蚝: "🦪",
+  牡蛎: "🦪",
+  扇贝: "🦪",
+  瘦牛肉: "🥩",
+  牛肉: "🥩",
+  鸡胸肉: "🍗",
+  鸡肉: "🍗",
+  动物肝脏: "🥩",
+  橙子: "🍊",
+  奇异果: "🥝",
+  猕猴桃: "🥝",
+  草莓: "🍓",
+  苹果: "🍎",
+  蓝莓: "🫐",
+  葡萄柚: "🍊",
+  西瓜: "🍉",
+  柿子: "🍅",
+  香蕉: "🍌",
+  燕麦: "🥣",
+  糙米: "🍚",
+  全麦面包: "🍞",
+  小米粥: "🥣",
+  馒头: "🍞",
+  苏打饼干: "🍪",
+  牛油果: "🥑",
+  橄榄油: "🫒",
+  亚麻籽: "🌾",
+};
+
 const state = loadState();
 let deferredInstallPrompt = null;
+let lastUsageTick = Date.now();
+let lastVisibilityState = document.visibilityState;
 
 const refs = {
   profileName: document.querySelector("#profileName"),
   genderSelect: document.querySelector("#genderSelect"),
   stageSelect: document.querySelector("#stageSelect"),
+  saveStatus: document.querySelector("#saveStatus"),
+  saveNow: document.querySelector("#saveNow"),
+  saveToday: document.querySelector("#saveToday"),
+  saveHistory: document.querySelector("#saveHistory"),
   todayDate: document.querySelector("#todayDate"),
   todayTitle: document.querySelector("#todayTitle"),
   todaySummary: document.querySelector("#todaySummary"),
+  todayStats: document.querySelector("#todayStats"),
   scorePercent: document.querySelector("#scorePercent"),
   focusList: document.querySelector("#focusList"),
   checklist: document.querySelector("#checklist"),
@@ -277,6 +349,9 @@ const refs = {
   resetToday: document.querySelector("#resetToday"),
   foodStageLabel: document.querySelector("#foodStageLabel"),
   nutrientCards: document.querySelector("#nutrientCards"),
+  historySummary: document.querySelector("#historySummary"),
+  historyList: document.querySelector("#historyList"),
+  weeklyReport: document.querySelector("#weeklyReport"),
   shoppingList: document.querySelector("#shoppingList"),
   weeklyPlan: document.querySelector("#weeklyPlan"),
   copyShopping: document.querySelector("#copyShopping"),
@@ -285,6 +360,8 @@ const refs = {
   enableNotifications: document.querySelector("#enableNotifications"),
   notificationStatus: document.querySelector("#notificationStatus"),
   avoidList: document.querySelector("#avoidList"),
+  saveSettings: document.querySelector("#saveSettings"),
+  settingsSaveStatus: document.querySelector("#settingsSaveStatus"),
   installButton: document.querySelector("#installButton"),
 };
 
@@ -292,10 +369,13 @@ init();
 
 function init() {
   registerServiceWorker();
+  ensureTodayMeta();
   renderControls();
   bindEvents();
   render();
+  renderSaveStatus();
   startReminderLoop();
+  startUsageTracking();
 }
 
 function loadState() {
@@ -306,18 +386,51 @@ function loadState() {
     reminders: { morning: "09:00", evening: "18:30" },
     avoid: [],
     checks: {},
+    usage: {},
+    dailyMeta: {},
+    manualSaves: {},
     notified: {},
+    lastSavedAt: null,
   };
 
   try {
-    return { ...fallback, ...JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") };
+    const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    return {
+      ...fallback,
+      ...raw,
+      reminders: { ...fallback.reminders, ...(raw.reminders || {}) },
+      avoid: Array.isArray(raw.avoid) ? raw.avoid : [],
+      checks: raw.checks || {},
+      usage: raw.usage || {},
+      dailyMeta: raw.dailyMeta || {},
+      manualSaves: raw.manualSaves || {},
+      notified: raw.notified || {},
+    };
   } catch {
     return fallback;
   }
 }
 
-function saveState() {
+function saveState({ manual = false, message = "" } = {}) {
+  const now = new Date().toISOString();
+  state.lastSavedAt = now;
+  if (manual) {
+    state.manualSaves[dateKey] = now;
+  }
+  ensureTodayMeta(now);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  if (message) {
+    renderSaveStatus(message);
+  }
+}
+
+function ensureTodayMeta(updatedAt = new Date().toISOString()) {
+  state.dailyMeta[dateKey] = {
+    gender: state.gender,
+    stage: state.stage,
+    foodCount: getVisibleFoods().length,
+    updatedAt,
+  };
 }
 
 function renderControls() {
@@ -343,27 +456,31 @@ function bindEvents() {
 
   refs.profileName.addEventListener("input", () => {
     state.profileName = refs.profileName.value.trim() || "我们家";
-    saveState();
+    saveState({ message: "已自动保存使用者名称" });
   });
 
   refs.genderSelect.addEventListener("change", () => {
     state.gender = refs.genderSelect.value;
-    saveState();
+    saveState({ message: "已自动保存性别选择" });
     render();
   });
 
   refs.stageSelect.addEventListener("change", () => {
     state.stage = refs.stageSelect.value;
-    saveState();
+    saveState({ message: "已自动保存阶段选择" });
     render();
   });
 
   refs.resetToday.addEventListener("click", () => {
     state.checks[dateKey] = [];
-    saveState();
+    saveState({ manual: true, message: "已清空并保存今天的记录" });
     render();
   });
 
+  refs.saveNow.addEventListener("click", () => manualSave("已保存当前所有内容"));
+  refs.saveToday.addEventListener("click", () => manualSave("已保存今天的饮食记录"));
+  refs.saveHistory.addEventListener("click", () => manualSave("已保存最近记录和周报告"));
+  refs.saveSettings.addEventListener("click", () => manualSave("已保存设置与记录"));
   refs.copyShopping.addEventListener("click", copyShoppingList);
 
   refs.morningTime.addEventListener("change", () => updateReminder("morning", refs.morningTime.value));
@@ -372,7 +489,7 @@ function bindEvents() {
 
   refs.avoidList.addEventListener("change", () => {
     state.avoid = [...refs.avoidList.querySelectorAll("input:checked")].map((input) => input.value);
-    saveState();
+    saveState({ message: "已自动保存忌口设置" });
     render();
   });
 
@@ -391,13 +508,21 @@ function bindEvents() {
   });
 }
 
+function manualSave(message) {
+  flushUsage();
+  saveState({ manual: true, message });
+  render();
+}
+
 function switchView(viewId) {
+  flushUsage();
   document.querySelectorAll(".tab").forEach((button) => {
     button.classList.toggle("is-active", button.dataset.view === viewId);
   });
   document.querySelectorAll(".view").forEach((view) => {
     view.classList.toggle("is-active", view.id === viewId);
   });
+  render();
 }
 
 function getCurrentPlan() {
@@ -409,18 +534,27 @@ function getFoods() {
   return [...new Set(foods)];
 }
 
+function getVisibleFoods() {
+  return getFoods().filter((food) => !isAvoided(food));
+}
+
 function render() {
   const plan = getCurrentPlan();
   const checked = state.checks[dateKey] || [];
-  const foods = getFoods();
-  const visibleFoods = foods.filter((food) => !isAvoided(food));
-  const percent = visibleFoods.length ? Math.round((checked.filter((food) => visibleFoods.includes(food)).length / visibleFoods.length) * 100) : 0;
+  const visibleFoods = getVisibleFoods();
+  const checkedVisible = checked.filter((food) => visibleFoods.includes(food));
+  const percent = visibleFoods.length ? Math.round((checkedVisible.length / visibleFoods.length) * 100) : 0;
 
   refs.todayDate.textContent = TODAY.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric", weekday: "long" });
   refs.todayTitle.textContent = plan.title;
   refs.todaySummary.textContent = plan.summary;
   refs.scorePercent.textContent = `${percent}%`;
-  refs.checkedCount.textContent = `${checked.length}/${visibleFoods.length} 项`;
+  refs.checkedCount.textContent = `${checkedVisible.length}/${visibleFoods.length} 项`;
+  refs.todayStats.innerHTML = [
+    statPill(`${checkedVisible.length} 项`, "今日已打卡"),
+    statPill(formatDuration(state.usage[dateKey] || 0), "今日使用时长"),
+    statPill(formatDuration((Date.now() - sessionStartedAt) / 1000), "本次打开"),
+  ].join("");
 
   refs.focusList.innerHTML = plan.nutrients.map((item) => `
     <article class="focus-item">
@@ -428,17 +562,23 @@ function render() {
       <div>
         <h4>${item.name}</h4>
         <p>${item.benefit}</p>
+        <div class="sticker-row">${item.foods.slice(0, 5).map(foodSticker).join("")}</div>
       </div>
     </article>
   `).join("");
 
-  refs.checklist.innerHTML = foods.map((food) => {
+  refs.checklist.innerHTML = getFoods().map((food) => {
     const checkedAttr = checked.includes(food) ? "checked" : "";
     const avoided = isAvoided(food);
+    const nutrientNames = nutrientsForFood(food).join(" / ");
     return `
-      <label class="food-check ${avoided ? "is-avoided" : ""}">
+      <label class="food-check ${checked.includes(food) ? "is-checked" : ""} ${avoided ? "is-avoided" : ""}">
         <input type="checkbox" value="${food}" ${checkedAttr} ${avoided ? "disabled" : ""} />
-        <span>${food}${avoided ? "<small>已按忌口弱化</small>" : ""}</span>
+        <span class="food-art" aria-hidden="true">${foodIcon(food)}</span>
+        <span class="food-copy">
+          <strong>${food}</strong>
+          <small>${avoided ? "已按忌口弱化" : nutrientNames}</small>
+        </span>
       </label>
     `;
   }).join("");
@@ -452,13 +592,24 @@ function render() {
     <article class="nutrient-card">
       <h4>${item.name}</h4>
       <p>${item.benefit}</p>
-      <ul>${item.foods.map((food) => `<li>${food}</li>`).join("")}</ul>
+      <div class="sticker-row">${item.foods.map(foodSticker).join("")}</div>
     </article>
   `).join("");
 
   renderShopping();
   renderWeeklyPlan();
+  renderHistory();
+  renderWeeklyReport();
   renderNotificationStatus();
+  renderSaveStatus();
+}
+
+function statPill(value, label) {
+  return `<div class="stat-pill"><strong>${value}</strong><span>${label}</span></div>`;
+}
+
+function foodSticker(food) {
+  return `<span class="food-sticker"><b aria-hidden="true">${foodIcon(food)}</b>${food}</span>`;
 }
 
 function toggleFood(food, isChecked) {
@@ -466,13 +617,13 @@ function toggleFood(food, isChecked) {
   if (isChecked) current.add(food);
   else current.delete(food);
   state.checks[dateKey] = [...current];
-  saveState();
+  saveState({ message: isChecked ? `已自动保存：${food}` : `已自动保存：取消 ${food}` });
   render();
 }
 
 function isAvoided(food) {
   return state.avoid.some((avoid) => {
-    if (avoid === "海鲜贝类") return ["生蚝", "牡蛎", "扇贝", "虾"].includes(food);
+    if (avoid === "海鲜贝类") return ["生蚝", "牡蛎", "扇贝", "虾", "鲜虾"].includes(food);
     if (avoid === "牛奶乳制品") return ["牛奶", "酸奶", "无糖酸奶", "奶酪"].includes(food);
     if (avoid === "坚果") return ["核桃", "杏仁", "花生", "芝麻", "芝麻酱"].includes(food);
     if (avoid === "豆类") return ["黄豆", "黑豆", "豆腐"].includes(food);
@@ -481,7 +632,7 @@ function isAvoided(food) {
 }
 
 function renderShopping() {
-  const foods = new Set(getFoods().filter((food) => !isAvoided(food)));
+  const foods = new Set(getVisibleFoods());
   refs.shoppingList.innerHTML = SHOPPING_GROUPS.map((group) => {
     const matched = group.foods.filter((food) => foods.has(food));
     if (!matched.length) return "";
@@ -489,14 +640,14 @@ function renderShopping() {
       <article class="shopping-card">
         <h4>${group.name}</h4>
         <p>建议本周从这些里面选 2-4 个，不需要全部买。</p>
-        <ul>${matched.map((food) => `<li>${food}</li>`).join("")}</ul>
+        <div class="chip-row">${matched.map(foodSticker).join("")}</div>
       </article>
     `;
   }).join("");
 }
 
 function renderWeeklyPlan() {
-  const foods = getFoods().filter((food) => !isAvoided(food));
+  const foods = getVisibleFoods();
   const days = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"];
   refs.weeklyPlan.innerHTML = days.map((day, index) => {
     const pick = [
@@ -507,16 +658,71 @@ function renderWeeklyPlan() {
     return `
       <article class="day-card">
         <h4>${day}</h4>
-        <p>${pick.join(" + ")}</p>
+        <div class="chip-row">${pick.map(foodSticker).join("")}</div>
       </article>
     `;
   }).join("");
 }
 
+function renderHistory() {
+  const entries = getRecentEntries();
+  const activeDays = entries.filter((entry) => entry.checked.length).length;
+  const totalChecks = entries.reduce((sum, entry) => sum + entry.checked.length, 0);
+  const average = entries.length ? Math.round(entries.reduce((sum, entry) => sum + entry.percent, 0) / entries.length) : 0;
+
+  refs.historySummary.innerHTML = [
+    reportCard(`${activeDays} 天`, "本周有记录"),
+    reportCard(`${average}%`, "平均完成度"),
+    reportCard(formatDuration(totalUsage(entries)), "本周使用时长"),
+  ].join("");
+
+  refs.historyList.innerHTML = entries.map((entry) => `
+    <article class="history-card">
+      <div class="history-top">
+        <div>
+          <h4>${entry.label}</h4>
+          <p>${entry.stageLabel} · ${entry.checked.length}/${entry.total} 项 · ${formatDuration(entry.usage)}</p>
+        </div>
+        <strong>${entry.percent}%</strong>
+      </div>
+      <div class="progress-track"><div class="progress-fill" style="width:${entry.percent}%"></div></div>
+      <div class="chip-row">${entry.checked.length ? entry.checked.slice(0, 8).map(foodSticker).join("") : "<span class=\"quiet\">这天还没有打卡</span>"}</div>
+    </article>
+  `).join("");
+}
+
+function renderWeeklyReport() {
+  const entries = getRecentEntries();
+  const checkedFoods = entries.flatMap((entry) => entry.checked);
+  const topFoods = topItems(checkedFoods).slice(0, 5);
+  const currentPlan = getCurrentPlan();
+  const checkedSet = new Set(checkedFoods);
+  const gaps = currentPlan.nutrients.filter((nutrient) => nutrient.foods.every((food) => !checkedSet.has(food)));
+  const bestDay = [...entries].sort((a, b) => b.percent - a.percent)[0];
+
+  refs.weeklyReport.innerHTML = [
+    reportCard(bestDay ? `${bestDay.label}` : "暂无", bestDay ? `完成度最高：${bestDay.percent}%` : "开始打卡后会自动分析"),
+    reportCard(topFoods.length ? topFoods.map(([food]) => food).join("、") : "暂无", "本周常吃食物"),
+    reportCard(gaps.length ? gaps.map((item) => item.name).join("、") : "覆盖不错", "可以补上的营养方向"),
+    reportCard(buildReportAdvice(entries, gaps), "下周建议"),
+  ].join("");
+}
+
+function reportCard(value, label) {
+  return `<article class="report-card"><strong>${value}</strong><span>${label}</span></article>`;
+}
+
+function buildReportAdvice(entries, gaps) {
+  const activeDays = entries.filter((entry) => entry.checked.length).length;
+  if (activeDays < 3) return "先把打卡稳定到每周 3 天";
+  if (gaps.length) return `优先安排 ${gaps[0].foods.slice(0, 3).join("、")}`;
+  return "继续保持，采购时轮换蔬果和蛋白";
+}
+
 async function copyShoppingList() {
   const text = [...refs.shoppingList.querySelectorAll(".shopping-card")].map((card) => {
     const title = card.querySelector("h4").textContent;
-    const items = [...card.querySelectorAll("li")].map((li) => li.textContent).join("、");
+    const items = [...card.querySelectorAll(".food-sticker")].map((li) => li.textContent).join("、");
     return `${title}: ${items}`;
   }).join("\n");
 
@@ -529,7 +735,7 @@ async function copyShoppingList() {
 
 function updateReminder(key, value) {
   state.reminders[key] = value;
-  saveState();
+  saveState({ message: "已自动保存提醒时间" });
 }
 
 async function enableNotifications() {
@@ -557,6 +763,13 @@ function renderNotificationStatus(permission) {
   refs.notificationStatus.textContent = `${label}。提醒时间：${state.reminders.morning}、${state.reminders.evening}`;
 }
 
+function renderSaveStatus(message) {
+  const manual = state.manualSaves[dateKey];
+  const text = message || (manual ? `今天已手动保存：${formatTime(manual)}` : `已自动保存到本机：${formatTime(state.lastSavedAt)}`);
+  refs.saveStatus.textContent = text;
+  refs.settingsSaveStatus.textContent = text;
+}
+
 function startReminderLoop() {
   setInterval(() => {
     if (!("Notification" in window) || Notification.permission !== "granted") return;
@@ -570,6 +783,34 @@ function startReminderLoop() {
     saveState();
     sendNotification("今天吃过哪些了？", `${stageLabel()}：打开备孕饭点，勾一下今天吃过的食物。`);
   }, 30000);
+}
+
+function startUsageTracking() {
+  setInterval(() => {
+    flushUsage();
+    saveState();
+    render();
+  }, 60000);
+
+  document.addEventListener("visibilitychange", () => {
+    flushUsage();
+    saveState();
+  });
+
+  window.addEventListener("beforeunload", () => {
+    flushUsage();
+    saveState();
+  });
+}
+
+function flushUsage() {
+  const now = Date.now();
+  if (lastVisibilityState === "visible") {
+    const delta = Math.max(0, Math.round((now - lastUsageTick) / 1000));
+    state.usage[dateKey] = Math.round((state.usage[dateKey] || 0) + delta);
+  }
+  lastUsageTick = now;
+  lastVisibilityState = document.visibilityState;
 }
 
 function sendNotification(title, body) {
@@ -586,12 +827,82 @@ async function registerServiceWorker() {
   }
 }
 
+function nutrientsForFood(food) {
+  return getCurrentPlan().nutrients.filter((item) => item.foods.includes(food)).map((item) => item.name);
+}
+
+function foodIcon(food) {
+  return FOOD_ICONS[food] || "🍽️";
+}
+
+function getRecentEntries() {
+  return getRecentDateKeys(7).map((key) => {
+    const checked = state.checks[key] || [];
+    const meta = state.dailyMeta[key] || {};
+    const total = meta.foodCount || (key === dateKey ? getVisibleFoods().length : Math.max(checked.length, getVisibleFoods().length));
+    const percent = total ? Math.min(100, Math.round((checked.length / total) * 100)) : 0;
+    return {
+      key,
+      label: formatDateLabel(key),
+      checked,
+      total,
+      percent,
+      usage: state.usage[key] || 0,
+      stageLabel: stageLabel(meta.stage || state.stage),
+    };
+  });
+}
+
+function getRecentDateKeys(count) {
+  return Array.from({ length: count }, (_, index) => {
+    const day = new Date(TODAY);
+    day.setDate(TODAY.getDate() - index);
+    return getLocalDateKey(day);
+  });
+}
+
+function topItems(items) {
+  const counts = new Map();
+  items.forEach((item) => counts.set(item, (counts.get(item) || 0) + 1));
+  return [...counts.entries()].sort((a, b) => b[1] - a[1]);
+}
+
+function totalUsage(entries) {
+  return entries.reduce((sum, entry) => sum + entry.usage, 0);
+}
+
 function genderLabel() {
   return GENDERS.find((item) => item.id === state.gender)?.label || "女生";
 }
 
-function stageLabel() {
-  return STAGES.find((item) => item.id === state.stage)?.label || "备孕前三个月";
+function stageLabel(stageId = state.stage) {
+  return STAGES.find((item) => item.id === stageId)?.label || "备孕前三个月";
+}
+
+function formatDuration(seconds) {
+  const total = Math.max(0, Math.round(seconds));
+  if (total < 60) return `${total} 秒`;
+  const minutes = Math.round(total / 60);
+  if (minutes < 60) return `${minutes} 分钟`;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return rest ? `${hours} 小时 ${rest} 分钟` : `${hours} 小时`;
+}
+
+function formatTime(isoString) {
+  if (!isoString) return "刚刚";
+  return new Date(isoString).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" });
+}
+
+function formatDateLabel(key) {
+  const date = parseDateKey(key);
+  const label = date.toLocaleDateString("zh-CN", { month: "numeric", day: "numeric", weekday: "short" });
+  return key === dateKey ? `今天 ${label}` : label;
+}
+
+function parseDateKey(key) {
+  const [year, month, day] = key.split("-").map(Number);
+  return new Date(year, month - 1, day);
 }
 
 function getLocalDateKey(date) {

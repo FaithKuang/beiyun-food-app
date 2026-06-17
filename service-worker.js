@@ -1,4 +1,4 @@
-const CACHE_NAME = "fertility-food-v2";
+const CACHE_NAME = "fertility-food-v4";
 const ASSETS = [
   "./",
   "./index.html",
@@ -6,6 +6,7 @@ const ASSETS = [
   "./app.js",
   "./manifest.webmanifest",
   "./icon.svg",
+  "./assets/logo-couple-meal.png",
   "./icons/icon-180.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
@@ -29,14 +30,22 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(fetch(event.request).catch(() => caches.match("./index.html")));
     return;
   }
-  event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request)));
+  event.respondWith(
+    fetch(event.request)
+      .then((response) => {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        return response;
+      })
+      .catch(() => caches.match(event.request))
+  );
 });
 
 self.addEventListener("message", (event) => {
   if (event.data?.type !== "notify") return;
   self.registration.showNotification(event.data.title, {
     body: event.data.body,
-    icon: "./icon.svg",
-    badge: "./icon.svg",
+    icon: "./icons/icon-192.png",
+    badge: "./icons/icon-192.png",
   });
 });

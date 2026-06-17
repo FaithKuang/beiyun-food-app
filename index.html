@@ -3,26 +3,32 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#fff7ed" />
+    <meta name="theme-color" content="#dff2df" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="备孕饭点" />
     <title>备孕饭点</title>
-    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="manifest" href="./manifest.webmanifest?v=20260617-green-report" />
     <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png" />
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=20260617-green-report" />
   </head>
   <body>
     <div class="app-shell">
       <header class="topbar">
-        <div>
-          <p class="eyebrow">备孕 / 孕期饮食提醒</p>
-          <h1>备孕饭点</h1>
+        <div class="brand-lockup">
+          <img class="brand-logo" src="./assets/logo-couple-meal.png" alt="" />
+          <div>
+            <p class="eyebrow">备孕 / 孕期饮食提醒</p>
+            <h1>备孕饭点</h1>
+          </div>
         </div>
-        <button id="installButton" class="icon-button" type="button" hidden aria-label="安装到桌面">
-          <span aria-hidden="true">＋</span>
-        </button>
+        <div class="top-actions">
+          <button id="saveNow" class="save-button" type="button" aria-label="保存当前记录">保存</button>
+          <button id="installButton" class="icon-button" type="button" hidden aria-label="安装到桌面">
+            <span aria-hidden="true">＋</span>
+          </button>
+        </div>
       </header>
 
       <main>
@@ -41,9 +47,12 @@
           </label>
         </section>
 
+        <p id="saveStatus" class="save-status" aria-live="polite"></p>
+
         <nav class="tabs" aria-label="功能导航">
           <button class="tab is-active" type="button" data-view="today">今日</button>
-          <button class="tab" type="button" data-view="foods">食物库</button>
+          <button class="tab" type="button" data-view="foods">食物</button>
+          <button class="tab" type="button" data-view="history">记录</button>
           <button class="tab" type="button" data-view="shopping">采购</button>
           <button class="tab" type="button" data-view="settings">设置</button>
         </nav>
@@ -54,6 +63,7 @@
               <p id="todayDate" class="eyebrow"></p>
               <h2 id="todayTitle"></h2>
               <p id="todaySummary"></p>
+              <div id="todayStats" class="stat-row"></div>
             </div>
             <div class="score-ring" aria-label="今日完成度">
               <span id="scorePercent">0%</span>
@@ -63,19 +73,22 @@
 
           <div class="section-heading">
             <h3>今日重点</h3>
-            <button id="resetToday" type="button">清空今日</button>
+            <button id="saveToday" type="button">保存今日</button>
           </div>
           <div id="focusList" class="focus-list"></div>
 
           <div class="section-heading">
             <h3>今天吃过什么</h3>
-            <span id="checkedCount" class="quiet"></span>
+            <div class="heading-actions">
+              <span id="checkedCount" class="quiet"></span>
+              <button id="resetToday" type="button">清空</button>
+            </div>
           </div>
           <div id="checklist" class="check-grid"></div>
 
           <article class="note-box">
             <strong>小提示</strong>
-            <p>这里是饮食提醒和记录工具，不替代医生建议。备孕、孕期、有基础疾病或正在服药时，以医生或营养师建议为准。</p>
+            <p>打勾、阶段、忌口和提醒设置都会自动保存在这台手机里；点“保存”会留下明确保存时间。这里不替代医生建议。</p>
           </article>
         </section>
 
@@ -85,6 +98,20 @@
             <span id="foodStageLabel" class="quiet"></span>
           </div>
           <div id="nutrientCards" class="nutrient-list"></div>
+        </section>
+
+        <section id="history" class="view">
+          <div class="section-heading">
+            <h3>最近一周记录</h3>
+            <button id="saveHistory" type="button">保存记录</button>
+          </div>
+          <div id="historySummary" class="report-grid"></div>
+          <div id="historyList" class="history-list"></div>
+
+          <div class="section-heading">
+            <h3>本周分析报告</h3>
+          </div>
+          <div id="weeklyReport" class="report-grid"></div>
         </section>
 
         <section id="shopping" class="view">
@@ -101,6 +128,13 @@
         </section>
 
         <section id="settings" class="view">
+          <div class="settings-card">
+            <h3>保存与记忆</h3>
+            <p class="subcopy">所有记录保存在当前设备浏览器本地。关闭 App 再打开，会继续读取同一份记录。</p>
+            <button id="saveSettings" class="primary" type="button">保存当前设置与记录</button>
+            <p id="settingsSaveStatus" class="quiet"></p>
+          </div>
+
           <div class="settings-card">
             <h3>每日提醒</h3>
             <p class="subcopy">打开通知后，网页或主屏幕 App 运行时会按这些时间提醒。后台长期推送可作为下一版升级。</p>
@@ -134,6 +168,6 @@
       </main>
     </div>
 
-    <script src="./app.js" type="module"></script>
+    <script src="./app.js?v=20260617-green-report" type="module"></script>
   </body>
 </html>
