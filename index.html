@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#fff7ed" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="备孕饭点" />
+    <title>备孕饭点</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">备孕 / 孕期饮食提醒</p>
+          <h1>备孕饭点</h1>
+        </div>
+        <button id="installButton" class="icon-button" type="button" hidden aria-label="安装到桌面">
+          <span aria-hidden="true">＋</span>
+        </button>
+      </header>
+
+      <main>
+        <section class="profile-strip" aria-label="当前档案">
+          <label>
+            <span>使用者</span>
+            <input id="profileName" type="text" maxlength="12" />
+          </label>
+          <label>
+            <span>性别</span>
+            <select id="genderSelect"></select>
+          </label>
+          <label>
+            <span>阶段</span>
+            <select id="stageSelect"></select>
+          </label>
+        </section>
+
+        <nav class="tabs" aria-label="功能导航">
+          <button class="tab is-active" type="button" data-view="today">今日</button>
+          <button class="tab" type="button" data-view="foods">食物库</button>
+          <button class="tab" type="button" data-view="shopping">采购</button>
+          <button class="tab" type="button" data-view="settings">设置</button>
+        </nav>
+
+        <section id="today" class="view is-active">
+          <div class="hero-panel">
+            <div>
+              <p id="todayDate" class="eyebrow"></p>
+              <h2 id="todayTitle"></h2>
+              <p id="todaySummary"></p>
+            </div>
+            <div class="score-ring" aria-label="今日完成度">
+              <span id="scorePercent">0%</span>
+              <small>完成</small>
+            </div>
+          </div>
+
+          <div class="section-heading">
+            <h3>今日重点</h3>
+            <button id="resetToday" type="button">清空今日</button>
+          </div>
+          <div id="focusList" class="focus-list"></div>
+
+          <div class="section-heading">
+            <h3>今天吃过什么</h3>
+            <span id="checkedCount" class="quiet"></span>
+          </div>
+          <div id="checklist" class="check-grid"></div>
+
+          <article class="note-box">
+            <strong>小提示</strong>
+            <p>这里是饮食提醒和记录工具，不替代医生建议。备孕、孕期、有基础疾病或正在服药时，以医生或营养师建议为准。</p>
+          </article>
+        </section>
+
+        <section id="foods" class="view">
+          <div class="section-heading">
+            <h3>阶段食物库</h3>
+            <span id="foodStageLabel" class="quiet"></span>
+          </div>
+          <div id="nutrientCards" class="nutrient-list"></div>
+        </section>
+
+        <section id="shopping" class="view">
+          <div class="section-heading">
+            <h3>本周山姆采购清单</h3>
+            <button id="copyShopping" type="button">复制</button>
+          </div>
+          <p class="subcopy">按山姆常见大包装思路整理，实际库存和价格以你所在门店/山姆 App 为准。</p>
+          <div id="shoppingList" class="shopping-list"></div>
+          <div class="section-heading">
+            <h3>一周饮食建议</h3>
+          </div>
+          <div id="weeklyPlan" class="weekly-plan"></div>
+        </section>
+
+        <section id="settings" class="view">
+          <div class="settings-card">
+            <h3>每日提醒</h3>
+            <p class="subcopy">打开通知后，网页或主屏幕 App 运行时会按这些时间提醒。后台长期推送可作为下一版升级。</p>
+            <label class="time-row">
+              <span>早餐后</span>
+              <input id="morningTime" type="time" />
+            </label>
+            <label class="time-row">
+              <span>晚饭前</span>
+              <input id="eveningTime" type="time" />
+            </label>
+            <button id="enableNotifications" class="primary" type="button">开启提醒</button>
+            <p id="notificationStatus" class="quiet"></p>
+          </div>
+
+          <div class="settings-card">
+            <h3>忌口</h3>
+            <p class="subcopy">勾选后，相关食物会从今日清单和采购清单中弱化显示。</p>
+            <div id="avoidList" class="avoid-list"></div>
+          </div>
+
+          <div class="settings-card">
+            <h3>安装到 iPhone</h3>
+            <ol>
+              <li>用 Safari 打开部署后的 HTTPS 链接。</li>
+              <li>点分享按钮，选择“添加到主屏幕”。</li>
+              <li>从桌面打开后，再点“开启提醒”。</li>
+            </ol>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>

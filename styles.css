@@ -1,0 +1,395 @@
+:root {
+  color-scheme: light;
+  --bg: #fffaf2;
+  --panel: #ffffff;
+  --ink: #202124;
+  --muted: #69665f;
+  --line: #eadfd0;
+  --accent: #0f766e;
+  --accent-2: #c2410c;
+  --soft: #f7ead9;
+  --soft-green: #e5f4ef;
+  --danger: #9f1239;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #fff7ed 0%, #f7fbf8 100%);
+  color: var(--ink);
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--ink);
+  min-height: 40px;
+  padding: 0 14px;
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+.app-shell {
+  width: min(100%, 760px);
+  margin: 0 auto;
+  padding: max(16px, env(safe-area-inset-top)) 16px calc(84px + env(safe-area-inset-bottom));
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0 18px;
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  color: var(--accent-2);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 0;
+  font-size: 30px;
+  letter-spacing: 0;
+}
+
+h2 {
+  margin-bottom: 10px;
+  font-size: 24px;
+  letter-spacing: 0;
+}
+
+h3 {
+  margin-bottom: 0;
+  font-size: 18px;
+  letter-spacing: 0;
+}
+
+.icon-button {
+  width: 44px;
+  min-width: 44px;
+  padding: 0;
+  border-color: transparent;
+  background: var(--accent);
+  color: white;
+  font-size: 28px;
+}
+
+.profile-strip {
+  display: grid;
+  grid-template-columns: 1fr 0.8fr 1.4fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.profile-strip label,
+.time-row {
+  display: grid;
+  gap: 6px;
+}
+
+.profile-strip span,
+.time-row span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+input,
+select {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--ink);
+  padding: 0 10px;
+}
+
+.tabs {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  padding: 8px 0 12px;
+  background: rgba(255, 250, 242, 0.92);
+  backdrop-filter: blur(12px);
+}
+
+.tab {
+  min-height: 38px;
+  padding: 0 8px;
+  color: var(--muted);
+}
+
+.tab.is-active {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: white;
+  font-weight: 700;
+}
+
+.view {
+  display: none;
+}
+
+.view.is-active {
+  display: block;
+}
+
+.hero-panel,
+.settings-card,
+.note-box {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.hero-panel {
+  display: grid;
+  grid-template-columns: 1fr 94px;
+  align-items: center;
+  gap: 12px;
+  padding: 18px;
+  margin-bottom: 18px;
+}
+
+.hero-panel p {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.score-ring {
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  border: 8px solid var(--soft-green);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+}
+
+.score-ring span {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.score-ring small {
+  margin-top: -10px;
+  color: var(--muted);
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 18px 0 10px;
+}
+
+.quiet,
+.subcopy {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.focus-list,
+.nutrient-list,
+.shopping-list,
+.weekly-plan,
+.avoid-list {
+  display: grid;
+  gap: 10px;
+}
+
+.focus-item,
+.nutrient-card,
+.shopping-card,
+.day-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 14px;
+}
+
+.focus-item {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  gap: 12px;
+}
+
+.badge {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  background: var(--soft-green);
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.focus-item h4,
+.nutrient-card h4,
+.shopping-card h4,
+.day-card h4 {
+  margin: 0 0 6px;
+  font-size: 16px;
+}
+
+.focus-item p,
+.nutrient-card p,
+.shopping-card p,
+.day-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.check-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.food-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 46px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 8px 10px;
+}
+
+.food-check input {
+  width: 20px;
+  min-height: 20px;
+  accent-color: var(--accent);
+}
+
+.food-check.is-avoided {
+  opacity: 0.45;
+}
+
+.food-check small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.note-box {
+  margin-top: 18px;
+  padding: 14px;
+  background: #fff7ed;
+}
+
+.note-box p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.nutrient-card ul,
+.shopping-card ul,
+.settings-card ol {
+  margin: 10px 0 0;
+  padding-left: 20px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.settings-card {
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.time-row {
+  grid-template-columns: 72px 1fr;
+  align-items: center;
+  margin: 12px 0;
+}
+
+.primary {
+  width: 100%;
+  border-color: var(--accent);
+  background: var(--accent);
+  color: white;
+  font-weight: 700;
+}
+
+.avoid-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.avoid-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.avoid-chip input {
+  width: 18px;
+  min-height: 18px;
+  accent-color: var(--danger);
+}
+
+@media (max-width: 560px) {
+  .app-shell {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .profile-strip {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .profile-strip label:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .hero-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .score-ring {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 5 / 1;
+    border-radius: 8px;
+    border: 0;
+    background: var(--soft-green);
+  }
+}
