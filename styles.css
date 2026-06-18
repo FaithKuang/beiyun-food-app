@@ -247,7 +247,7 @@ select {
   top: 0;
   z-index: 2;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 6px;
   padding: 8px 0 12px;
   background: rgba(244, 251, 239, 0.92);

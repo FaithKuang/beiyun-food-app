@@ -9,9 +9,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="备孕饭点" />
     <title>备孕饭点</title>
-    <link rel="manifest" href="./manifest.webmanifest?v=20260618-kind-score" />
+    <link rel="manifest" href="./manifest.webmanifest?v=20260618-report-tab" />
     <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png" />
-    <link rel="stylesheet" href="./styles.css?v=20260618-kind-score" />
+    <link rel="stylesheet" href="./styles.css?v=20260618-report-tab" />
   </head>
   <body>
     <div class="app-shell">
@@ -53,6 +53,7 @@
           <button class="tab is-active" type="button" data-view="today">今日</button>
           <button class="tab" type="button" data-view="foods">食物</button>
           <button class="tab" type="button" data-view="history">记录</button>
+          <button class="tab" type="button" data-view="report">报告</button>
           <button class="tab" type="button" data-view="shopping">采购</button>
           <button class="tab" type="button" data-view="settings">设置</button>
         </nav>
@@ -107,11 +108,23 @@
           </div>
           <div id="historySummary" class="report-grid"></div>
           <div id="historyList" class="history-list"></div>
+        </section>
+
+        <section id="report" class="view">
+          <div class="section-heading">
+            <h3>本周每天饮食搭配</h3>
+            <span id="reportStatus" class="quiet"></span>
+          </div>
+          <div id="reportWeeklyMenu" class="weekly-plan"></div>
 
           <div class="section-heading">
-            <h3>本周分析报告</h3>
+            <h3>周日分析报告</h3>
           </div>
           <div id="weeklyReport" class="report-grid"></div>
+          <div class="section-heading">
+            <h3>下周饮食建议</h3>
+          </div>
+          <div id="nextWeekAdvice" class="focus-list"></div>
         </section>
 
         <section id="shopping" class="view">
@@ -173,6 +186,6 @@
       <strong>保存成功</strong>
     </div>
 
-    <script src="./app.js?v=20260618-kind-score" type="module"></script>
+    <script src="./app.js?v=20260618-report-tab" type="module"></script>
   </body>
 </html>

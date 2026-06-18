@@ -178,7 +178,7 @@ const FOOD_DATA = {
           name: "叶酸与蛋白",
           short: "叶",
           benefit: "和女生一样，规律吃绿叶菜和蛋白质比临时进补更重要。",
-          foods: ["菠菜", "小白菜", "芦笋", "鸡蛋", "牛奶", "鱼", "豆腐"],
+          foods: ["动物肝脏", "菠菜", "小白菜", "芦笋", "鸡蛋", "牛奶", "鱼", "豆腐"],
         },
       ],
     },
@@ -258,7 +258,7 @@ const FOOD_DATA = {
 };
 
 const SHOPPING_GROUPS = [
-  { name: "蛋白质", foods: ["鸡蛋", "牛奶", "无糖酸奶", "酸奶", "豆腐", "鸡胸肉", "瘦牛肉", "羊肉", "猪肝", "鲤鱼", "虾", "鳕鱼", "三文鱼"] },
+  { name: "蛋白质", foods: ["鸡蛋", "牛奶", "无糖酸奶", "酸奶", "豆腐", "鸡胸肉", "瘦牛肉", "羊肉", "猪肝", "动物肝脏", "鲤鱼", "虾", "鳕鱼", "三文鱼"] },
   { name: "绿叶菜和蔬菜", foods: ["菠菜", "小白菜", "空心菜", "西兰花", "芦笋", "番茄", "西红柿", "胡萝卜", "海藻", "冬瓜", "红薯", "黄瓜"] },
   { name: "水果", foods: ["橙子", "橘子", "柑橘", "奇异果", "猕猴桃", "酸枣", "苹果", "蓝莓", "草莓", "葡萄", "木瓜", "葡萄柚", "西瓜"] },
   { name: "坚果豆类和主食", foods: ["核桃", "杏仁", "黑豆", "黄豆", "燕麦", "糙米", "全麦面包"] },
@@ -369,7 +369,10 @@ const refs = {
   nutrientCards: document.querySelector("#nutrientCards"),
   historySummary: document.querySelector("#historySummary"),
   historyList: document.querySelector("#historyList"),
+  reportStatus: document.querySelector("#reportStatus"),
+  reportWeeklyMenu: document.querySelector("#reportWeeklyMenu"),
   weeklyReport: document.querySelector("#weeklyReport"),
+  nextWeekAdvice: document.querySelector("#nextWeekAdvice"),
   shoppingList: document.querySelector("#shoppingList"),
   weeklyPlan: document.querySelector("#weeklyPlan"),
   copyShopping: document.querySelector("#copyShopping"),
@@ -406,6 +409,7 @@ function loadState() {
     checks: {},
     usage: {},
     dailyMeta: {},
+    weeklyReports: {},
     manualSaves: {},
     notified: {},
     lastSavedAt: null,
@@ -421,6 +425,7 @@ function loadState() {
       checks: raw.checks || {},
       usage: raw.usage || {},
       dailyMeta: raw.dailyMeta || {},
+      weeklyReports: raw.weeklyReports || {},
       manualSaves: raw.manualSaves || {},
       notified: raw.notified || {},
     };
@@ -618,6 +623,7 @@ function render() {
   renderShopping();
   renderWeeklyPlan();
   renderHistory();
+  renderReportWeeklyMenu();
   renderWeeklyReport();
   renderNotificationStatus();
   renderSaveStatus();
@@ -710,21 +716,69 @@ function renderHistory() {
   `).join("");
 }
 
+function renderReportWeeklyMenu() {
+  const foods = getVisibleFoods();
+  const weekEntries = getWeekEntries();
+
+  refs.reportWeeklyMenu.innerHTML = weekEntries.map((entry, index) => {
+    const suggested = [
+      foods[index % foods.length],
+      foods[(index + 2) % foods.length],
+      foods[(index + 5) % foods.length],
+    ].filter(Boolean);
+
+    return `
+      <article class="day-card">
+        <h4>${entry.label}</h4>
+        <p>${entry.stageLabel} · 建议搭配</p>
+        <div class="chip-row">${suggested.map(foodSticker).join("")}</div>
+        <p class="quiet">已打卡：${entry.checked.length ? entry.checked.slice(0, 6).join("、") : "还没有记录"}</p>
+      </article>
+    `;
+  }).join("");
+}
+
 function renderWeeklyReport() {
-  const entries = getRecentEntries();
+  const entries = getWeekEntries();
   const checkedFoods = entries.flatMap((entry) => entry.checked);
   const topFoods = topItems(checkedFoods).slice(0, 5);
   const currentPlan = getCurrentPlan();
   const checkedSet = new Set(checkedFoods);
   const gaps = currentPlan.nutrients.filter((nutrient) => nutrient.foods.every((food) => !checkedSet.has(food)));
   const bestDay = [...entries].sort((a, b) => b.percent - a.percent)[0];
+  const isSunday = TODAY.getDay() === 0;
+  const weekKey = getWeekKey(TODAY);
+
+  refs.reportStatus.textContent = isSunday ? "今天周日，已生成本周报告" : "周日自动生成，当前为实时预览";
 
   refs.weeklyReport.innerHTML = [
     reportCard(bestDay ? `${bestDay.label}` : "暂无", bestDay ? `完成度最高：${bestDay.percent}%` : "开始打卡后会自动分析"),
     reportCard(topFoods.length ? topFoods.map(([food]) => food).join("、") : "暂无", "本周常吃食物"),
     reportCard(gaps.length ? gaps.map((item) => item.name).join("、") : "覆盖不错", "可以补上的营养方向"),
-    reportCard(buildReportAdvice(entries, gaps), "下周建议"),
+    reportCard(isSunday ? "本周报告" : "实时预览", isSunday ? "周日报告已生成" : "周日会定稿保存"),
   ].join("");
+
+  refs.nextWeekAdvice.innerHTML = buildNextWeekAdvice(entries, gaps).map((item) => `
+    <article class="focus-item">
+      <div class="badge">${item.short}</div>
+      <div>
+        <h4>${item.title}</h4>
+        <p>${item.copy}</p>
+        <div class="sticker-row">${item.foods.map(foodSticker).join("")}</div>
+      </div>
+    </article>
+  `).join("");
+
+  if (isSunday && !state.weeklyReports[weekKey]) {
+    state.weeklyReports[weekKey] = {
+      createdAt: new Date().toISOString(),
+      activeDays: entries.filter((entry) => entry.checked.length).length,
+      topFoods: topFoods.map(([food]) => food),
+      gaps: gaps.map((item) => item.name),
+      nextAdvice: buildReportAdvice(entries, gaps),
+    };
+    saveState();
+  }
 }
 
 function reportCard(value, label) {
@@ -736,6 +790,34 @@ function buildReportAdvice(entries, gaps) {
   if (activeDays < 3) return "先把打卡稳定到每周 3 天";
   if (gaps.length) return `优先安排 ${gaps[0].foods.slice(0, 3).join("、")}`;
   return "继续保持，采购时轮换蔬果和蛋白";
+}
+
+function buildNextWeekAdvice(entries, gaps) {
+  const activeDays = entries.filter((entry) => entry.checked.length).length;
+  const currentPlan = getCurrentPlan();
+  const firstGap = gaps[0] || currentPlan.nutrients[0];
+  const stableFoods = firstGap?.foods?.slice(0, 4) || getVisibleFoods().slice(0, 4);
+
+  return [
+    {
+      short: "稳",
+      title: activeDays < 3 ? "先稳定打卡节奏" : "保持当前节奏",
+      copy: activeDays < 3 ? "下周先做到 3 天有记录，比追求每天完美更容易坚持。" : "下周继续保持，每天 3-5 种食物就有很好的正反馈。",
+      foods: getVisibleFoods().slice(0, 4),
+    },
+    {
+      short: "补",
+      title: firstGap ? `补一点${firstGap.name}` : "营养覆盖不错",
+      copy: firstGap ? "从缺口对应的食物里挑几样放进购物清单。" : "可以开始轮换不同颜色的蔬果和蛋白来源。",
+      foods: stableFoods,
+    },
+    {
+      short: "搭",
+      title: "每日搭配公式",
+      copy: "每天尽量选 1 个蛋白、1 个深色蔬菜、1 个水果或主食，不需要一次吃完全部清单。",
+      foods: getVisibleFoods().slice(2, 6),
+    },
+  ];
 }
 
 async function copyShoppingList() {
@@ -885,12 +967,42 @@ function getRecentEntries() {
   });
 }
 
+function getWeekEntries() {
+  return getWeekDateKeys(TODAY).map((key) => {
+    const checked = state.checks[key] || [];
+    const meta = state.dailyMeta[key] || {};
+    return {
+      key,
+      label: formatDateLabel(key),
+      checked,
+      total: meta.foodCount || Math.max(checked.length, getVisibleFoods().length),
+      percent: completionFromFoodCount(checked.length),
+      usage: state.usage[key] || 0,
+      stageLabel: stageLabel(meta.stage || state.stage),
+    };
+  });
+}
+
 function getRecentDateKeys(count) {
   return Array.from({ length: count }, (_, index) => {
     const day = new Date(TODAY);
     day.setDate(TODAY.getDate() - index);
     return getLocalDateKey(day);
   });
+}
+
+function getWeekDateKeys(date) {
+  const day = date.getDay();
+  const mondayOffset = day === 0 ? -6 : 1 - day;
+  return Array.from({ length: 7 }, (_, index) => {
+    const weekDay = new Date(date);
+    weekDay.setDate(date.getDate() + mondayOffset + index);
+    return getLocalDateKey(weekDay);
+  });
+}
+
+function getWeekKey(date) {
+  return getWeekDateKeys(date)[0];
 }
 
 function topItems(items) {
