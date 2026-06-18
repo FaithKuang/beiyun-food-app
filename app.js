@@ -352,6 +352,7 @@ const refs = {
   genderSelect: document.querySelector("#genderSelect"),
   stageSelect: document.querySelector("#stageSelect"),
   saveStatus: document.querySelector("#saveStatus"),
+  saveToast: document.querySelector("#saveToast"),
   saveNow: document.querySelector("#saveNow"),
   saveToday: document.querySelector("#saveToday"),
   saveHistory: document.querySelector("#saveHistory"),
@@ -528,6 +529,7 @@ function bindEvents() {
 function manualSave(message) {
   flushUsage();
   saveState({ manual: true, message });
+  showSaveToast();
   render();
 }
 
@@ -785,6 +787,19 @@ function renderSaveStatus(message) {
   const text = message || (manual ? `今天已手动保存：${formatTime(manual)}` : `已自动保存到本机：${formatTime(state.lastSavedAt)}`);
   refs.saveStatus.textContent = text;
   refs.settingsSaveStatus.textContent = text;
+}
+
+function showSaveToast() {
+  if (!refs.saveToast) return;
+  refs.saveToast.classList.remove("is-visible");
+  refs.saveToast.setAttribute("aria-hidden", "false");
+  void refs.saveToast.offsetWidth;
+  refs.saveToast.classList.add("is-visible");
+  window.clearTimeout(showSaveToast.hideTimer);
+  showSaveToast.hideTimer = window.setTimeout(() => {
+    refs.saveToast.classList.remove("is-visible");
+    refs.saveToast.setAttribute("aria-hidden", "true");
+  }, 1600);
 }
 
 function startReminderLoop() {
