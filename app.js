@@ -562,13 +562,13 @@ function render() {
   const checked = state.checks[dateKey] || [];
   const visibleFoods = getVisibleFoods();
   const checkedVisible = checked.filter((food) => visibleFoods.includes(food));
-  const percent = visibleFoods.length ? Math.round((checkedVisible.length / visibleFoods.length) * 100) : 0;
+  const percent = completionFromFoodCount(checkedVisible.length);
 
   refs.todayDate.textContent = TODAY.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric", weekday: "long" });
   refs.todayTitle.textContent = plan.title;
   refs.todaySummary.textContent = plan.summary;
   refs.scorePercent.textContent = `${percent}%`;
-  refs.checkedCount.textContent = `${checkedVisible.length}/${visibleFoods.length} 项`;
+  refs.checkedCount.textContent = `${checkedVisible.length} 种 · 每种 +18%`;
   refs.todayStats.innerHTML = [
     statPill(`${checkedVisible.length} 项`, "今日已打卡"),
     statPill(formatDuration(state.usage[dateKey] || 0), "今日使用时长"),
@@ -700,7 +700,7 @@ function renderHistory() {
       <div class="history-top">
         <div>
           <h4>${entry.label}</h4>
-          <p>${entry.stageLabel} · ${entry.checked.length}/${entry.total} 项 · ${formatDuration(entry.usage)}</p>
+          <p>${entry.stageLabel} · ${entry.checked.length} 种食物 · ${formatDuration(entry.usage)}</p>
         </div>
         <strong>${entry.percent}%</strong>
       </div>
@@ -872,7 +872,7 @@ function getRecentEntries() {
     const checked = state.checks[key] || [];
     const meta = state.dailyMeta[key] || {};
     const total = meta.foodCount || (key === dateKey ? getVisibleFoods().length : Math.max(checked.length, getVisibleFoods().length));
-    const percent = total ? Math.min(100, Math.round((checked.length / total) * 100)) : 0;
+    const percent = completionFromFoodCount(checked.length);
     return {
       key,
       label: formatDateLabel(key),
@@ -897,6 +897,10 @@ function topItems(items) {
   const counts = new Map();
   items.forEach((item) => counts.set(item, (counts.get(item) || 0) + 1));
   return [...counts.entries()].sort((a, b) => b[1] - a[1]);
+}
+
+function completionFromFoodCount(count) {
+  return Math.min(100, count * 18);
 }
 
 function totalUsage(entries) {

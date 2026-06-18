@@ -1,4 +1,4 @@
-const CACHE_NAME = "fertility-food-v6";
+const CACHE_NAME = "fertility-food-v7";
 const ASSETS = [
   "./",
   "./index.html",
